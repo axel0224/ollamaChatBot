@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ollama Chat</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/145b19ae93.js" crossorigin="anonymous"></script>
+
+    <style>
+        body {
+            background-color: #728C69;
+            color: #ffffff;
+        }
+        .journal-card {
+            border-radius: 30px;
+            padding: 2rem;
+            max-width: 500px;
+            margin: 2rem auto;
+            color: #ffffff;
+        }
+        .header-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .prompt-bubble {
+            background-color: #523083;
+            color: #ffffff;
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            display: inline-block;
+            font-weight:500;
+            margin: 1rem 0;
+        }
+
+        textarea {
+            resize: none;
+            border-radius: 20px;
+            border: none;
+            padding: 1rem;
+            min-height: 200px;
+            width: 100%;
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-primary {
+            background-color: #523083;
+            border-color: #523083;
+        }
+        .btn-primary:hover {
+            background-color: #6d3da5;
+            border-color: #6d3da5;
+        }
+        .logo{
+            width: 60px;
+        }
+
+        #chat-box {
+            height: 400px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            padding: 1rem;
+            border: 1px solid #dee2e6;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            border-radius: 30px;
+            color: #000000
+        }
+        .message {
+            margin-bottom: 0.75rem;
+        }
+        .user {
+            font-weight: bold;
+            color: #0d6efd;
+        }
+        .bot {
+            font-weight: bold;
+            color: #198754
+        }
+    </style>
+</head>
+<body>
+    <div class="journal-card">
+        <!-- Header -->
+        <div class="header-bar mb-4">
+            <a href="#" class="btn btn-link p-0 me-2 text-decoration-none">
+                <i class="fa-solid fa-arrow-left" style="color: #523083"></i>
+            </a>
+
+            <a href="#" class="btn btn-link p-0 text-decoration-none">
+                <i class="fa-solid fa-book" style="color: #523083"></i>
+            </a>
+
+            <img src="/images/eagle.svg" alt="Responder health logo" class="logo" />
+        </div>
+
+
+        <!-- Title and Date -->
+        <h2 class="fw-bold">My Journal</h2>
+        <h5 id="current-date" class="text-light"></h5>
+
+        <!-- Prompt Bubble -->
+        <div class="prompt-bubble">
+            Tell me how you are doing today.
+        </div>
+
+        <!-- Chat Box and Input -->
+        <<div id="chat-box"></div>
+
+        <form id="chat-form">
+            <div class="mb-3">
+                <textarea id="user-input" placeholder="Start typing ..." required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Send</button>
+        </form>>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.js"></script>
+    <script>
+        // Get references to the chat box, chat form, and user input field
+        const chatBox = document.getElementById('chat-box') // The container where chat messages will be displayed
+        const chatForm = document.getElementById('chat-form') // The form element for submitting user messages
+        const userInput = document.getElementById('user-input') // The input field where the user types their message
+
+        // Initialize an array to store the conversation messages
+        let messages = []
+
+        // Add an event listener to handle the form submission
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault() // Prevent the default form submission behavior (page reload)
+
+            // Get the user's message from the input field and trim any extra whitespace
+            const userMessage = userInput.value.trim()
+            if (!userMessage) return // If the input is empty, do nothing
+
+            // Display the user's message in the chat box
+            appendMessage('You', userMessage, 'user')
+
+            // Clear the input field after the message is sent
+            userInput.value = ''
+
+            // Add the user's message to the messages array with the role 'user'
+            messages.push({ role: 'user', content: userMessage })
+
+            try {
+                // Send the user's message to the server via a POST request
+                const response = await fetch('/chat', {
+                    method: 'POST', // HTTP method
+                    headers: {
+                        'Content-Type': 'application/json' // Specify the content type as JSON
+                    },
+                    body: JSON.stringify({
+                        model: 'journal-coach', // Specify the model to use for the chatbot
+                        messages: messages, // Include the conversation history
+                        stream: false, // Disable streaming responses
+                    }),
+                })
+
+                // Parse the server's response as JSON
+                const data = await response.json()
+
+                // Extract the chatbot's reply from the response
+                const botMessage = data.message.content
+
+                // Display the chatbot's reply in the chat box
+                appendMessage('Awesome Eagle Firefighter ', botMessage, 'bot')
+
+                // Add the chatbot's reply to the messages array with the role 'assistant'
+                messages.push({ role: 'assistant', content: botMessage })
+            } catch (err) {
+                // If an error occurs, display an error message in the chat box
+                appendMessage("Error", 'Could not connect to Ollama.', 'bot')
+
+                // Log the error to the console for debugging
+                console.log(err)
+            }
+        })
+
+        // Setting the date
+        const dateE1 = document.getElementById('current-date') // Get the element where the current date will be displayed
+        const today = new Date() // Create a new Date object for the current date
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' } // Define options for date formatting
+        dateE1.textContent = today.toLocaleDateString('en-US', options) // Format the date and set it as the text content of the element
+
+        // Function to append a message to the chat box
+        // Parameters:
+        // - sender: The name of the sender (e.g., 'You' or 'Ollama')
+        // - text: The message content
+        // - type: The CSS class to apply for styling (e.g., 'user' or 'bot')
+        function appendMessage(sender, text, type) {
+            const div = document.createElement('div') // Create a new div element for the message
+            div.className = 'message' // Add the 'message' class for styling
+            div.innerHTML = `<span class="${type}">${sender}:</span> ${text}` // Format the message with the sender and content
+            chatBox.appendChild(div) // Add the message to the chat box
+            chatBox.scrollTop = chatBox.scrollHeight // Scroll to the bottom of the chat box to show the latest message
+        }
+    </script>
+    
+</body>
+</html>
