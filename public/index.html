@@ -177,44 +177,43 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // Get references to DOM elements
             const chatBox = document.getElementById('chatBox');
             const userInput = document.getElementById('userInput');
             const sendBtn = document.getElementById('sendBtn');
-            const messages = [];
+            const messages = []; // Array to store chat messages
 
             // Function to handle sending a message
             const sendMessage = async () => {
-                const text = userInput.value.trim();
-                if (!text) return;
+                const text = userInput.value.trim(); // Get and trim user input
+                if (!text) return; // Do nothing if input is empty
 
-                appendMessage(text, 'user');
-                messages.push({ role: 'user', content: text });
-                userInput.value = '';
+                appendMessage(text, 'user'); // Add user's message to the chat box
+                messages.push({ role: 'user', content: text }); // Save user's message
+                userInput.value = ''; // Clear the input field
 
-                // Add loading bubble before fetching AI response
-                const loadingBubble = appendMessage('...', 'ai', true); // true = isLoading
+                // Add a loading bubble to indicate AI is responding
+                const loadingBubble = appendMessage('...', 'ai', true);
 
                 try {
+                    // Send the user's message to the backend
                     const res = await fetch('http://localhost:3000/chat', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ messages, model: 'journal-coach' })
                     });
 
-                    const data = await res.json();
-                    const aiReply = data.message?.content || 'Sorry, no response.';
+                    const data = await res.json(); // Parse the response
+                    const aiReply = data.message?.content || 'Sorry, no response.'; // Get AI's reply
 
-                    // Remove loading bubble
-                    loadingBubble.remove();
-
-                    // Add actual AI message
-                    appendMessage(aiReply, 'ai');
-                    messages.push({ role: 'assistant', content: aiReply });
+                    loadingBubble.remove(); // Remove the loading bubble
+                    appendMessage(aiReply, 'ai'); // Add AI's reply to the chat box
+                    messages.push({ role: 'assistant', content: aiReply }); // Save AI's reply
 
                 } catch (err) {
-                    console.error('Error communicating with backend:', err);
-                    loadingBubble.remove();
-                    appendMessage('Error talking to journal coach.', 'ai');
+                    console.error('Error communicating with backend:', err); // Log any errors
+                    loadingBubble.remove(); // Remove the loading bubble
+                    appendMessage('Error talking to journal coach.', 'ai'); // Show error message
                 }
             };
 
@@ -225,46 +224,50 @@
             userInput.addEventListener('keydown', (event) => {
                 if (event.key === 'Enter') {
                     event.preventDefault(); // Prevent default form submission behavior
-                    sendMessage();
+                    sendMessage(); // Trigger the sendMessage function
                 }
             });
 
+            // Adjust the height of the input field dynamically as the user types
             userInput.addEventListener('input', () => {
-                userInput.style.height = 'auto';
-                userInput.style.height = Math.min(userInput.scrollHeight, 120) + 'px';
-            })
+                userInput.style.height = 'auto'; // Reset height
+                userInput.style.height = Math.min(userInput.scrollHeight, 120) + 'px'; // Adjust height
+            });
 
+            // Function to append a message to the chat box
             function appendMessage(text, sender, isLoading = false) {
-                const messageWrapper = document.createElement('div');
+                const messageWrapper = document.createElement('div'); // Create a wrapper for the message
                 messageWrapper.classList.add('message-wrapper', sender === 'user' ? 'right' : 'left');
 
-                const messageDiv = document.createElement('div');
+                const messageDiv = document.createElement('div'); // Create the message bubble
                 messageDiv.classList.add('message', sender === 'user' ? 'user-message' : 'ai-message');
-                messageDiv.textContent = text;
+                messageDiv.textContent = text; // Set the message text
 
-                const timestamp = document.createElement('div');
+                const timestamp = document.createElement('div'); // Create a timestamp element
                 timestamp.classList.add('timestamp');
 
                 if (!isLoading) {
-                    const now = new Date();
+                    const now = new Date(); // Get the current time
                     timestamp.textContent = now.toLocaleTimeString([], {
                         hour: '2-digit',
                         minute: '2-digit'
                     });
                 } else {
-                    timestamp.textContent = ''; // Don't show time for loading
+                    timestamp.textContent = ''; // No timestamp for loading bubbles
                 }
 
+                // Append the message and timestamp to the wrapper
                 messageWrapper.appendChild(messageDiv);
                 messageWrapper.appendChild(timestamp);
 
+                // Add the wrapper to the chat box
                 chatBox.appendChild(messageWrapper);
-                chatBox.scrollTop = chatBox.scrollHeight;
+                chatBox.scrollTop = chatBox.scrollHeight; // Scroll to the bottom of the chat box
 
-                return messageWrapper;
+                return messageWrapper; // Return the wrapper (useful for loading bubbles)
             }
 
-            // Set date
+            // Set the current date in the header
             document.getElementById('current-date').textContent = new Date().toLocaleDateString(undefined, {
                 weekday: 'long',
                 year: 'numeric',
