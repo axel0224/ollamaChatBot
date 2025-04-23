@@ -195,6 +195,26 @@
                 // Add a loading bubble to indicate AI is responding
                 const loadingBubble = appendMessage('...', 'ai', true);
 
+                // new function to get conversation history
+                async function getConversationHistory() {
+                    try {
+                        const res = await fetch('http://localhost:3000/conversation/history')
+                        const history = await res.json();
+                        
+                        history.foreach (pair => {
+                            appendMessage('you', pair.user, 'user');
+                            appendMessage('ai', pair.ai, 'bot');
+
+                            // Add the user's message to the messages array
+                            messages.push({ role: 'user', content: pair.user });
+                            // Add the AI's message to the messages array
+                            messages.push({ role: 'assistant', content: pair.ai });
+                        })
+                    } catch (err) {
+                        console.error('Error fetching conversation history:', err);
+                    }
+                }
+
                 try {
                     // Send the user's message to the backend
                     const res = await fetch('http://localhost:3000/chat', {
@@ -275,6 +295,8 @@
                 day: 'numeric'
             });
         });
+
+        loadConversationHistory();
     </script>
 </body>
 </html>
