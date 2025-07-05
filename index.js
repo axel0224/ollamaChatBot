@@ -24,7 +24,27 @@ const db = mysql.createPool ({
 app.post('/chat', async (req, res) => {
     const { messages, model } = req.body 
 
+    const getHistory = () => {
+        return new Promise((resolve, rejecct) => {
+            db.query('SELECT UserEntry, AIResponse FROM tblChatHistory WHERE UserID = ? ORDER BY Timestamp DESC LIMIT 5',
+                ['1'],
+                (err, rows) => {
+                    if (err) return rejecct(err)
+
+                    const history = rows.reverse().flatMap(r => [
+                        { role: 'user', content: r.UserEntry },
+                        { role: 'assistant', content: r.AIResponse }
+                    ])
+                    resolve(history)
+                }
+            )
+        })
+    }
+
     try {
+        const historyMessages = await getHistory()
+        const allMessages = [...historyMessages, ...messages]
+
         const response = await fetch('http://localhost:11434/api/chat', {
             method: 'POST',
             headers: {
@@ -34,7 +54,7 @@ app.post('/chat', async (req, res) => {
                 // can change model name based on the model you want to use, can also use ollama3.2
                 // journal-coach model is one made with ModelFile
                 model: 'journal-coach',
-                messages,
+                messages: allMessages,
                 stream: false, 
             })
         })
@@ -43,7 +63,7 @@ app.post('/chat', async (req, res) => {
         res.json(data)
     } catch (err) {
         console.error('Error talking to ollama:', err)
-        res.status(500).json({ error: 'Error talking to ollama' })
+        res.status(500).json({ error: 'Error talking to ollama or database' })
     }
 })
 

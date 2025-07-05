@@ -183,44 +183,28 @@
             const sendBtn = document.getElementById('sendBtn');
             const messages = []; // Array to store chat messages
 
+
             // Function to handle sending a message
             const sendMessage = async () => {
                 const text = userInput.value.trim(); // Get and trim user input
                 if (!text) return; // Do nothing if input is empty
 
                 appendMessage(text, 'user'); // Add user's message to the chat box
-                messages.push({ role: 'user', content: text }); // Save user's message
+                //messages.push({ role: 'user', content: text }); // Save user's message
                 userInput.value = ''; // Clear the input field
 
                 // Add a loading bubble to indicate AI is responding
-                const loadingBubble = appendMessage('...', 'ai', true);
-
-                // new function to get conversation history
-                async function getConversationHistory() {
-                    try {
-                        const res = await fetch('http://localhost:3000/conversation/history')
-                        const history = await res.json();
-                        
-                        history.foreach (pair => {
-                            appendMessage('you', pair.user, 'user');
-                            appendMessage('ai', pair.ai, 'bot');
-
-                            // Add the user's message to the messages array
-                            messages.push({ role: 'user', content: pair.user });
-                            // Add the AI's message to the messages array
-                            messages.push({ role: 'assistant', content: pair.ai });
-                        })
-                    } catch (err) {
-                        console.error('Error fetching conversation history:', err);
-                    }
-                }
+                const loadingBubble = appendMessage('...', 'ai', true);               
 
                 try {
                     // Send the user's message to the backend
                     const res = await fetch('http://localhost:3000/chat', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ messages, model: 'journal-coach' })
+                        body: JSON.stringify({ 
+                            model: 'journal-coach',
+                            messages: [{ role: 'user', content: text}]
+                        })
                     });
 
                     const data = await res.json(); // Parse the response
@@ -228,8 +212,17 @@
 
                     loadingBubble.remove(); // Remove the loading bubble
                     appendMessage(aiReply, 'ai'); // Add AI's reply to the chat box
-                    messages.push({ role: 'assistant', content: aiReply }); // Save AI's reply
+                    //messages.push({ role: 'assistant', content: aiReply }); // Save AI's reply
 
+                    // save conversation history to database
+                    await fetch('http://localhost:3000/conversation', {
+                        method: 'POST',
+                        headers: { 'Content-Type' : 'application/json' },
+                        body: JSON.stringify({
+                            UserEntry: text,
+                            AIResponse: aiReply 
+                        })
+                    })
                 } catch (err) {
                     console.error('Error communicating with backend:', err); // Log any errors
                     loadingBubble.remove(); // Remove the loading bubble
