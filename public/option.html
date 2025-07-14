@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Option Page</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/145b19ae93.js" crossorigin="anonymous"></script>
+    <style>
+        body {
+            background-color: #728C69;
+            color: #ffffff;    
+        }
+
+        .white-wrapper {
+            padding: 15px; /* Further reduce padding for desktops */
+            margin-top: 10px; /* Further reduce top margin */
+            min-height: calc(100vh - 300px); /* Further reduce height for desktops */
+            max-width: 80%; /* Further limit the width of the white box */
+            margin-left: auto;
+            margin-right: auto;
+      }
+    </style>
+</head>
+<body>
+    <div class="container-fluid px-3">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="white-wrapper">
+                <h1>Option Page</h1>
+                <p>Choose your journal type:</p>
+                <div class="yellow-tab">
+                    <button class="btn btn-primary" id="btnAI">AI Journal</button>
+                </div>
+                <div>
+                    <button class="btn btn-primary" id="btnNon-AI">Non-AI Journal</button> 
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.js"></script>
+    <script>
+        // event listener for AI journal button
+        document.getElementById('btnAI').addEventListener('click', function () {
+            // Go to AI journal page
+            window.location.href = 'index.html';
+        })
+
+        // event listener for Non-AI journal button
+        document.getElementById('btnNon-AI').addEventListener('click', function () {
+            window.location.href = 'non-ai.html';
+        })
+    </script>
+</body>
+</html>
