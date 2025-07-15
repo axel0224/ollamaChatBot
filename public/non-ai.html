@@ -25,6 +25,15 @@
             align-items: center;
             justify-content: space-between;
         }
+        .prompt-bubble {
+            background-color: #523083;
+            color: #ffffff;
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            display: inline-block;
+            font-weight:500;
+            margin: 1rem 0;
+        }
         textarea {
             resize: none;
             border-radius: 20px;
@@ -46,22 +55,24 @@
         .logo{
             width: 60px;
         }
-
-        #chatBox {
-            background-color: #fff;
-            height: 400px;
-            overflow-y: auto;
-            border-radius: 50px;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-            padding: 1.5rem;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+        .input-group {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 30px; 
+            overflow: hidden;
         }
+        textarea {
+            resize: none;
+            border-radius: 20px;
+            border: none;
+            padding: 1rem;
+            min-height: 200px;
+            width: 100%;
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+        
     </style>
 </head>
 <body>
-    <h1>Non-AI journal page</h1>
     <div class="journal-card">
         <!-- Header -->
         <div class="header-bar mb-4">
@@ -92,13 +103,44 @@
     <!-- message input -->
     <div class="input-group">
         <textarea id="userInput" class="form-control" placeholder="Type your message here..." rows="1" aria-label="User Input"></textarea>
-        <button id="sendButton" class="btn btn-primary" type="button">Save entry</button>
+        <button id="saveButton" class="btn btn-primary" type="button">Save entry</button>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
 
+            const saveEntry = async () => {
+                const userInput = document.getElementById('userInput').value.trim();
+                if (userInput) {
+                    // Save the entry to the database
+                    try {
+                        await fetch('http://localhost:3000/userEntry', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ UserEntry: userInput })
+                        });
+
+                        // if (response.ok) {
+                        //     // Clear the input field after saving
+                        //     document.getElementById('userInput').value = '';
+                        //     alert('Entry saved successfully!');
+                        // } else {
+                        //     alert('Failed to save entry. Please try again.');
+                        // }
+                    } catch (error) {
+                        console.error('Error saving entry:', error);
+                        alert('An error occurred. Please try again.');
+                    }
+                } else {
+                    alert('Please enter some text before saving.');
+                }
+            }
+
+            // Event listener for save button
+            saveButton.addEventListener('click', saveEntry);
 
             // Set the current date in the header
             document.getElementById('current-date').textContent = new Date().toLocaleDateString(undefined, {
@@ -107,7 +149,7 @@
                 month: 'long',
                 day: 'numeric'
             })
-            
+
         })
     </script>
 </body>

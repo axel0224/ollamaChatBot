@@ -88,6 +88,7 @@ app.post('/conversation', async (req, res) => {
 
 // Route to get the last 5 interactions for sliding window
 app.get('/conversation/history', (req, res) => {
+    // using 1 for conversation history with ai
     const UserID = '1'
 
     const query = `SELECT UserEntry, AIResponse FROM tblChatHistory WHERE UserID = ? ORDER BY Timestamp DESC LIMIT 5`
@@ -99,6 +100,25 @@ app.get('/conversation/history', (req, res) => {
         } else {
             const history = rows.reverse() 
             res.status(200).json(history)
+        }
+    })
+})
+
+app.post('/userEntry', async (req, res) => {
+    
+    const ChatHistoryID = uuidv4()
+    const UserId = '2' // using 2 for user entries with no ai response
+    const UserEntry = req.body.UserEntry
+    const Timestamp = new Date()
+
+    const query = `INSERT INTO tblChatHistory (ChatHistoryID, UserID, UserEntry, Timestamp) VALUES (?, ?, ?, ?)`
+
+    db.query(query, [ChatHistoryID, UserId, UserEntry, Timestamp], (err, result) => {
+        if (err) {
+            console.log(err)
+            res.status(500).json({ error: 'Error saving user entry' })
+        } else {
+            res.status(200).json({ message: 'User entry saved successfully' })
         }
     })
 })
