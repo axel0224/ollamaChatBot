@@ -9,31 +9,98 @@
     <script src="https://kit.fontawesome.com/145b19ae93.js" crossorigin="anonymous"></script>
     <style>
         body {
+            font-family: 'Segoe UI', sans-serif;
             background-color: #728C69;
-            color: #ffffff;    
+            color: white;  
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;  
         }
 
         .white-wrapper {
+            background-color: white;
+            border-radius: 20px;
+            margin-top: 20px;
+            padding: 20px;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: stretch;
+            min-height: calc(100vh - 200px);
+        }
+        .yellow-tab-container {
+            flex: 0 0 60%; 
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .yellow-tab {
+            background-color: #D4A759;
+            color: white;
+            border-radius: 12px;
+            padding: 20px;
+            flex: 1 1 auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        @media (min-width: 768px) {
+            .white-wrapper {
+            padding: 20px; /* Slightly reduce padding for larger screens */
+            margin-top: 15px; /* Reduce top margin for larger screens */
+            min-height: calc(100vh - 250px); /* Further reduce height for tablets */
+            max-width: 90%; /* Limit the width of the white box */
+            margin-left: auto;
+            margin-right: auto;
+            }
+
+            .yellow-tab-container {
+                gap: 20px; /* Increase spacing between yellow tabs */
+            }
+
+            .yellow-tab {
+                padding: 35px; /* Increase padding for larger screens */
+                font-size: 1.6rem; /* Increase font size for larger screens */
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .white-wrapper {
             padding: 15px; /* Further reduce padding for desktops */
             margin-top: 10px; /* Further reduce top margin */
             min-height: calc(100vh - 300px); /* Further reduce height for desktops */
             max-width: 80%; /* Further limit the width of the white box */
             margin-left: auto;
             margin-right: auto;
-      }
+            }
+
+            .yellow-tab-container {
+                gap: 30px; /* Further increase spacing between yellow tabs */
+            }
+
+            .yellow-tab {
+                padding: 50px; /* Further increase padding for larger screens */
+                font-size: 1.8rem; /* Further increase font size for larger screens */
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container-fluid px-3">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div class="white-wrapper">
-                <h1>Option Page</h1>
-                <p>Choose your journal type:</p>
-                <div class="yellow-tab">
-                    <button class="btn btn-primary" id="btnAI">AI Journal</button>
-                </div>
-                <div>
-                    <button class="btn btn-primary" id="btnNon-AI">Non-AI Journal</button> 
+                <div class="yellow-tab-container">
+                    <div class="yellow-tab" onClick="window.location.href='index.html'">
+                        <span>AI Journal</span>
+                    </div>
+
+                    <div class="yellow-tab" onClick="window.location.href='non-ai.html'">
+                        <span>Non-AI Journal</span>
+                    </div>
                 </div>
             </div>
         </div>
