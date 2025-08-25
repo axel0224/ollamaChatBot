@@ -106,9 +106,15 @@
         <h5 id="current-date" class="text-light"></h5>
 
         <!-- Prompt Bubble -->
-        <div class="prompt-bubble">
+        <div class="prompt-bubble" id="promptText">
             Tell me how you are doing today.
         </div>
+
+        <!-- Prompt Generator -->
+         <div class="d-flex justify-content-between mt-2">
+            <button id="dailyPromptBtn" class="btn btn-sm btn-light">Daily Prompt</button>
+            <button id="rollPromptBtn" class="btn btn-sm btn-light">New Prompt</button>
+         </div>
 
         <!-- Chat Box and Input -->
         <div id="chatBox" class="chat-box mb-3 p-3">
@@ -164,7 +170,82 @@
                 day: 'numeric'
             })
 
-        })
+
+
+            // Prompt Generator
+
+            // Prompts 
+            const PROMPTS = [
+            { id: 1, text: "What’s one moment today you felt proud of?" },
+            { id: 2, text: "Describe a call or event that stuck with you today." },
+            { id: 3, text: "What helped you keep going at a hard moment?" },
+            { id: 4, text: "Write about something outside of work that gave you energy." },
+            { id: 5, text: "If today had a headline, what would it be?" },
+            { id: 6, text: "What’s one small act of kindness you noticed or gave?" },
+            { id: 7, text: "Name one strength you used today and how it showed up." },
+            { id: 8, text: "What’s a thought or feeling you’d like to leave here tonight?" },
+            { id: 9, text: "What are you grateful for today, no matter how big or small?"},
+            { id: 10, text: "What are your top priorities for the day?"},
+            { id: 11, text: "What are you working towards, and what steps can you take today? "},
+            { id: 12, text: "What surprised you today?" },
+            { id: 13, text: "Write about a moment you felt connected to someone." },
+            { id: 14, text: "What was the most challenging part of your day, and how did you handle it?" },
+            { id: 15, text: "What gave you a sense of calm or peace today?" },
+            { id: 16, text: "If you could capture one image from today, what would it be?" },
+            { id: 17, text: "What’s something you learned about yourself recently?" },
+            { id: 18, text: "Who supported you today, directly or indirectly?" },
+            { id: 19, text: "Describe a time you laughed or smiled today." },
+            { id: 20, text: "What’s one thing you wish had gone differently, and why?" },
+            { id: 21, text: "What intention do you want to carry into tomorrow?" },
+            { id: 22, text: "What’s one thing you’d like to let go of before the day ends?" },
+            { id: 23, text: "What energized you more than you expected?" },
+            { id: 24, text: "If you could write a message to your future self about today, what would it say?" },
+            { id: 25, text: "What was the simplest joy you experienced today?" },
+            { id: 26, text: "How did you take care of yourself today?" },
+            { id: 27, text: "What’s one skill or strength you’d like to grow tomorrow?" },
+            { id: 28, text: "What part of today are you most likely to remember a year from now?" },
+            { id: 29, text: "What emotions showed up for you today, and how did you respond?" },
+            { id: 30, text: "What’s one thing you’re carrying forward from today into the rest of the week?" }
+            ];
+
+            // Deterministic daily pick (stable per day)
+            function getDailyPromptObj() {
+                const today = new Date().toDateString();
+                let hash = 0;
+                for (let i = 0; i < today.length; i++) {
+                    hash = today.charCodeAt(i) + ((hash << 5) - hash);
+                }
+                return PROMPTS[Math.abs(hash) % PROMPTS.length];
+            }
+
+            // Random roll
+            function getRandomPromptObj() {
+                return PROMPTS[Math.floor(Math.random() * PROMPTS.length)];
+            }
+
+            // Cache DOM
+            const promptTextEl = document.getElementById('promptText');
+            const dailyBtn = document.getElementById('dailyPromptBtn');
+            const rollBtn = document.getElementById('rollPromptBtn');
+
+            // Track current prompt 
+            window.__currentPromptId = null;
+            window.__currentPromptSource = 'daily';
+
+            function setCurrentPrompt(p, source) {
+                promptTextEl.textContent = p.text;
+                window.__currentPromptId = p.id;
+                window.__currentPromptSource = source; // 'daily' or 'rolled'
+            }
+
+            // Wire buttons
+            dailyBtn.addEventListener('click', () => setCurrentPrompt(getDailyPromptObj(), 'daily'));
+            rollBtn.addEventListener('click',  () => setCurrentPrompt(getRandomPromptObj(), 'rolled'));
+
+            // Initialize with today's prompt
+            setCurrentPrompt(getDailyPromptObj(), 'daily');
+
+        });
     </script>
 </body>
 </html>
