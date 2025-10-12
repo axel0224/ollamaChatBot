@@ -21,51 +21,88 @@ const db = mysql.createPool ({
 })
 
 // Route to handle the chat request
+// Route to handle the chat request
 app.post('/chat', async (req, res) => {
-    const { messages, model } = req.body 
+  const { messages, model } = req.body;
 
-    const getHistory = () => {
-        return new Promise((resolve, rejecct) => {
-            db.query('SELECT UserEntry, AIResponse FROM tblChatHistory WHERE UserID = ? ORDER BY Timestamp DESC LIMIT 5',
-                ['1'],
-                (err, rows) => {
-                    if (err) return rejecct(err)
+  const getHistory = () => {
+    return new Promise((resolve, reject) => {
+      db.query(
+        'SELECT UserEntry, AIResponse FROM tblChatHistory WHERE UserID = ? ORDER BY Timestamp DESC LIMIT 5',
+        ['1'],
+        (err, rows) => {
+          if (err) return reject(err);
+          const history = rows.reverse().flatMap(r => [
+            { role: 'user', content: r.UserEntry },
+            { role: 'assistant', content: r.AIResponse }
+          ]);
+          resolve(history);
+        }
+      );
+    });
+  };
 
-                    const history = rows.reverse().flatMap(r => [
-                        { role: 'user', content: r.UserEntry },
-                        { role: 'assistant', content: r.AIResponse }
-                    ])
-                    resolve(history)
-                }
-            )
-        })
+  try {
+    const historyMessages = await getHistory();
+    const allMessages = [...historyMessages, ...(messages || [])];
+
+    const OLLAMA_URL = process.env.OLLAMA_URL || 'http://20.119.98.27:11434';
+    const MODEL = (model && model.trim()) || 'my-llama:latest';
+
+    // Optional timeout to avoid hanging requests
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 60_000);
+
+    const response = await fetch(`${OLLAMA_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: MODEL,
+        messages: allMessages,
+        stream: false
+      }),
+      signal: controller.signal
+    }).catch(err => {
+      // Network/abort errors get caught here
+      throw new Error(`Failed to reach Ollama: ${err.message}`);
+    });
+    clearTimeout(timeout);
+
+    const text = await response.text();
+
+    // Try to parse JSON, but log raw text for debugging
+    let data;
+    try { data = JSON.parse(text); }
+    catch {
+      console.error('Ollama non-JSON response:', text);
+      return res.status(502).json({ error: 'Bad response from Ollama (non-JSON)' });
     }
 
-    try {
-        const historyMessages = await getHistory()
-        const allMessages = [...historyMessages, ...messages]
-
-        const response = await fetch('http://localhost:11434/api/chat', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                // can change model name based on the model you want to use, can also use ollama3.2
-                // journal-coach model is one made with ModelFile
-                model: 'journal-coach',
-                messages: allMessages,
-                stream: false, 
-            })
-        })
-
-        const data = await response.json()
-        res.json(data)
-    } catch (err) {
-        console.error('Error talking to ollama:', err)
-        res.status(500).json({ error: 'Error talking to ollama or database' })
+    if (!response.ok) {
+      // Ollama responded with non-200
+      console.error('Ollama error:', data);
+      return res.status(response.status).json({ error: data.error || 'Ollama error' });
     }
-})
+
+    // Expected shape from /api/chat when stream:false:
+    // { model, created_at, message: { role, content }, done, ... }
+    const content = data?.message?.content;
+
+    if (!content) {
+      // Bubble up the error if present, else show data for debugging once in logs
+      console.error('Unexpected Ollama payload:', data);
+      return res.status(502).json({ error: 'No content from model' });
+    }
+
+    // Return a normalized shape the frontend already expects
+    return res.json({ message: { role: 'assistant', content } });
+
+  } catch (err) {
+    console.error('Error talking to ollama or database:', err);
+    return res.status(500).json({ error: err.message || 'Server error' });
+  }
+});
+
 
 app.post('/conversation', async (req, res) => {
     const ChatHistoryID = uuidv4()
