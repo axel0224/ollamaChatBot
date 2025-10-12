@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>non-ai</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/145b19ae93.js" crossorigin="anonymous"></script>
+    <style>
+        body {
+            background-color: #728C69;
+            color: #ffffff;
+        }
+
+        .journal-card {
+            border-radius: 30px;
+            padding: 2rem;
+            max-width: 500px;
+            margin: 2rem auto;
+            color: #ffffff;
+        }
+        .header-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .prompt-bubble {
+            background-color: #523083;
+            color: #ffffff;
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            display: inline-block;
+            font-weight:500;
+            margin: 1rem 0;
+        }
+
+        /* #chatBox {
+            background-color: #fff;
+            height: 400px;
+            overflow-y: auto;
+            border-radius: 50px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        } */
+
+        textarea {
+            background-color: #fff;
+            height: 400px;
+            overflow-y: auto;
+            border-radius: 200px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background-color: #523083;
+            border-color: #523083;
+        }
+        .btn-primary:hover {
+            background-color: #6d3da5;
+            border-color: #6d3da5;
+        }
+        .logo{
+            width: 60px;
+        }
+        .input-group {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 30px; 
+            overflow: hidden;
+        }
+        textarea {
+            resize: none;
+            border-radius: 20px;
+            border: none;
+            padding: 1rem;
+            min-height: 200px;
+            width: 100%;
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="journal-card">
+        <!-- Header -->
+        <div class="header-bar mb-4">
+            <a href="option.html" class="btn btn-link p-0 me-2 text-decoration-none">
+                <i class="fa-solid fa-arrow-left" style="color: #523083"></i>
+            </a>
+
+            <i class="fa-solid fa-book" style="color: #523083"></i>
+            
+
+            <img src="./images/eagle.svg" alt="Responder health logo" class="logo" />
+        </div>
+    
+        <!-- Title and Date -->
+        <h2 class="fw-bold">My Journal</h2>
+        <h5 id="current-date" class="text-light"></h5>
+
+        <!-- Prompt Bubble -->
+        <div class="prompt-bubble" id="promptText">
+            Tell me how you are doing today.
+        </div>
+
+        <!-- Prompt Generator -->
+         <div class="d-flex justify-content-between mt-2">
+            <button id="dailyPromptBtn" class="btn btn-sm btn-light">Daily Prompt</button>
+            <button id="rollPromptBtn" class="btn btn-sm btn-light">New Prompt</button>
+         </div>
+
+        <!-- Chat Box and Input -->
+        <div id="chatBox" class="chat-box mb-3 p-3">
+            <textarea id="userInput" class="form-control" placeholder="Type your message here..."  aria-label="User Input"></textarea>
+        </div>
+
+        <!-- Save Button -->           
+        <button id="saveButton" class="btn btn-primary" type="button">Save Entry</button>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            const saveEntry = async () => {
+                const userInput = document.getElementById('userInput').value.trim();
+                if (userInput) {
+                    // Save the entry to the database
+                    try {
+                        await fetch('http://localhost:3000/userEntry', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ UserEntry: userInput })
+                        });
+
+                        // if (response.ok) {
+                        //     // Clear the input field after saving
+                        //     document.getElementById('userInput').value = '';
+                        //     alert('Entry saved successfully!');
+                        // } else {
+                        //     alert('Failed to save entry. Please try again.');
+                        // }
+                    } catch (error) {
+                        console.error('Error saving entry:', error);
+                        alert('An error occurred. Please try again.');
+                    }
+                } else {
+                    alert('Please enter some text before saving.');
+                }
+            }
+
+            // Event listener for save button
+            saveButton.addEventListener('click', saveEntry);
+
+            // Set the current date in the header
+            document.getElementById('current-date').textContent = new Date().toLocaleDateString(undefined, {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            })
+
+
+
+            // Prompt Generator
+
+            // Prompts 
+            const PROMPTS = [
+            { id: 1, text: "What’s one moment today you felt proud of?" },
+            { id: 2, text: "Describe a call or event that stuck with you today." },
+            { id: 3, text: "What helped you keep going at a hard moment?" },
+            { id: 4, text: "Write about something outside of work that gave you energy." },
+            { id: 5, text: "If today had a headline, what would it be?" },
+            { id: 6, text: "What’s one small act of kindness you noticed or gave?" },
+            { id: 7, text: "Name one strength you used today and how it showed up." },
+            { id: 8, text: "What’s a thought or feeling you’d like to leave here tonight?" },
+            { id: 9, text: "What are you grateful for today, no matter how big or small?"},
+            { id: 10, text: "What are your top priorities for the day?"},
+            { id: 11, text: "What are you working towards, and what steps can you take today? "},
+            { id: 12, text: "What surprised you today?" },
+            { id: 13, text: "Write about a moment you felt connected to someone." },
+            { id: 14, text: "What was the most challenging part of your day, and how did you handle it?" },
+            { id: 15, text: "What gave you a sense of calm or peace today?" },
+            { id: 16, text: "If you could capture one image from today, what would it be?" },
+            { id: 17, text: "What’s something you learned about yourself recently?" },
+            { id: 18, text: "Who supported you today, directly or indirectly?" },
+            { id: 19, text: "Describe a time you laughed or smiled today." },
+            { id: 20, text: "What’s one thing you wish had gone differently, and why?" },
+            { id: 21, text: "What intention do you want to carry into tomorrow?" },
+            { id: 22, text: "What’s one thing you’d like to let go of before the day ends?" },
+            { id: 23, text: "What energized you more than you expected?" },
+            { id: 24, text: "If you could write a message to your future self about today, what would it say?" },
+            { id: 25, text: "What was the simplest joy you experienced today?" },
+            { id: 26, text: "How did you take care of yourself today?" },
+            { id: 27, text: "What’s one skill or strength you’d like to grow tomorrow?" },
+            { id: 28, text: "What part of today are you most likely to remember a year from now?" },
+            { id: 29, text: "What emotions showed up for you today, and how did you respond?" },
+            { id: 30, text: "What’s one thing you’re carrying forward from today into the rest of the week?" }
+            ];
+
+            // Deterministic daily pick (stable per day)
+            function getDailyPromptObj() {
+                const today = new Date().toDateString();
+                let hash = 0;
+                for (let i = 0; i < today.length; i++) {
+                    hash = today.charCodeAt(i) + ((hash << 5) - hash);
+                }
+                return PROMPTS[Math.abs(hash) % PROMPTS.length];
+            }
+
+            // Random roll
+            function getRandomPromptObj() {
+                return PROMPTS[Math.floor(Math.random() * PROMPTS.length)];
+            }
+
+            // Cache DOM
+            const promptTextEl = document.getElementById('promptText');
+            const dailyBtn = document.getElementById('dailyPromptBtn');
+            const rollBtn = document.getElementById('rollPromptBtn');
+
+            // Track current prompt 
+            window.__currentPromptId = null;
+            window.__currentPromptSource = 'daily';
+
+            function setCurrentPrompt(p, source) {
+                promptTextEl.textContent = p.text;
+                window.__currentPromptId = p.id;
+                window.__currentPromptSource = source; // 'daily' or 'rolled'
+            }
+
+            // Wire buttons
+            dailyBtn.addEventListener('click', () => setCurrentPrompt(getDailyPromptObj(), 'daily'));
+            rollBtn.addEventListener('click',  () => setCurrentPrompt(getRandomPromptObj(), 'rolled'));
+
+            // Initialize with today's prompt
+            setCurrentPrompt(getDailyPromptObj(), 'daily');
+
+        });
+    </script>
+</body>
+</html>
