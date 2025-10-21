@@ -46,7 +46,7 @@ app.post('/chat', async (req, res) => {
     const historyMessages = await getHistory();
     const allMessages = [...historyMessages, ...(messages || [])];
 
-    const OLLAMA_URL = process.env.OLLAMA_URL || 'http://20.119.98.27:11434';
+    const OLLAMA_URL = process.env.OLLAMA_URL || 'https://ollamaready.duckdns.org';
     const MODEL = (model && model.trim()) || 'my-llama:latest';
 
     // Optional timeout to avoid hanging requests
